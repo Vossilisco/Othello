@@ -5,12 +5,13 @@ import othello.Utils.Heuristica;
 import othello.Utils.Tablero;
 import java.util.ArrayList;
 
-
 public class AlgoritmoMiniMax extends Algoritmo {
 
-    public static int blanca=1;
-    public static int negra=-1;
-    
+    public static int blanca = 1;
+    public static int negra = -1;
+    public int min = 0;
+    public int max = 0;
+
     private int playerColor;
 
     public AlgoritmoMiniMax() {
@@ -46,35 +47,66 @@ public class AlgoritmoMiniMax extends Algoritmo {
      * @return
      */
     public int miniMax(Tablero tablero, int prof, int jugadorActual) {
-        int movimiento = 1;
-        //JUEGA BLANCAS
-        if (jugadorActual == blanca) {
-
-            int[] posibles;
-            
-            
-            
-            Casilla cas;
-            cas = new Casilla(4, 5);
-            cas.asignarFichaNegra();
-
-            if (tablero.movLegal(cas)) {
-                tablero.ponerFicha(cas);
-            }
-            
-            System.out.println(jugadorActual);
-            System.out.println(tablero.valorMovimiento(cas, jugadorActual));
-
-            System.out.println("Fin de mi turno");
-            
-            return movimiento;
-
-            //JUEGA NEGRAS
-        } else {
-            System.out.printf("Soy el jugador de las NEGRAS ");
-            System.out.println("Fin de mi turno");
-            return movimiento;
+        //Si llega a la profundidad máxima:
+        if (prof == 0 || tablero.EsFinalDeJuego()) {
+            return recuentoTotalfichas(tablero, playerColor);
         }
+        if (!tablero.PuedeJugar(jugadorActual)) {
+            if (this.getProfundidad() == prof) {
+                return recuentoTotalfichas(tablero, playerColor);
+            }
+            jugadorActual = -jugadorActual;
+        }
+        Casilla casillaMov = null;
+        // Genera una simulación del tablero con posibles movimientos
+        for (int fila = 0; fila < Tablero.CANTIDAD_FILAS_DEFECTO; fila++) {
+            for (int colum = 0; colum < Tablero.CANTIDAD_COLUMNAS_DEFECTO; colum++) {
+                Casilla cas = new Casilla(fila, colum);
+                if (jugadorActual == Casilla.FICHA_BLANCA) {
+                    cas.asignarFichaBlanca();
+                } 
+                if (jugadorActual == Casilla.FICHA_NEGRA){
+                    cas.asignarFichaNegra();
+                }
+                if (tablero.movLegal(cas)) {
+                    Tablero tableroJugada = tablero.copiarTablero();
+                    tableroJugada.ponerFicha(cas);
+                    // Se avanza movimientos intercalando jugadores hasta llegar a la profundidad deseada
+                    int mov = miniMax(tableroJugada, prof - 1, -jugadorActual);
+                    // MAX
+                    if (jugadorActual == playerColor) {
+                        if (mov >= max) {
+                           casillaMov = cas;
+                            max = mov;
+                        }
+                        if (mov > min) {
+                            min = mov;
+                        }
+                    } else { // MIN
+                        if (mov <= max) {
+                           casillaMov = cas;
+                            max = mov;
+                        }
+                        if (mov < min) {
+                            max = mov;
+                        }
+                    }
+                }
+            }
+
+            
+
+            
+        }
+        if (casillaMov != null) {
+                tablero.ponerFicha(casillaMov);
+            }
+
+            if (jugadorActual == this.playerColor) {
+                return min;
+            } else {
+                return max;
+            }
     }
 
     /**
@@ -86,6 +118,7 @@ public class AlgoritmoMiniMax extends Algoritmo {
      * @return contador de fichas del color del jugador
      */
     public int recuentoTotalfichas(Tablero tablero, int jugadorActual) {
+
         Casilla[][] tabla = tablero.getMatrizTablero();
 
         if (jugadorActual == 1) {
@@ -99,7 +132,7 @@ public class AlgoritmoMiniMax extends Algoritmo {
                 }
             }
             return contBlanca;
-            
+
         } else {
             int contNegras = 0;
 
@@ -113,11 +146,5 @@ public class AlgoritmoMiniMax extends Algoritmo {
             return contNegras;
         }
     }
-    
-  /*  public int[] recuentoPosibles(Tablero tablero, int jugadorActual){
-        for
-    }*/
-    
-    
-    
+
 }
