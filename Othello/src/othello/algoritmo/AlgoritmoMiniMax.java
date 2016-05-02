@@ -72,7 +72,7 @@ public class AlgoritmoMiniMax extends Algoritmo {
                     Tablero tableroJugada = tablero.copiarTablero();
                     tableroJugada.ponerFicha(cas);
                     // Se avanza movimientos intercalando jugadores hasta llegar a la profundidad deseada
-                    int mov = miniMax(tableroJugada, prof - 1, -jugadorActual);
+                    int mov = miniMax(tableroJugada, prof-1, -jugadorActual);
                     // MAX
                     if (jugadorActual == playerColor) {
                         if (mov >= max) {
