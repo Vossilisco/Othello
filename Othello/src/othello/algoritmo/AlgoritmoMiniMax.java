@@ -15,7 +15,6 @@ public class AlgoritmoMiniMax extends Algoritmo {
     private int playerColor;
 
     public AlgoritmoMiniMax() {
-
     }
 
     @Override
@@ -38,7 +37,7 @@ public class AlgoritmoMiniMax extends Algoritmo {
      *
      * Éste es el método que tenemos que implementar.
      *
-     * Algoritmo AlfaBeta para determinar cuál es el siguiente mejor movimiento
+     * Algoritmo Minimax para determinar cuál es el siguiente mejor movimiento
      *
      * @param tablero Configuración actual del tablero
      * @param prof Profundidad de búsqueda
@@ -47,44 +46,53 @@ public class AlgoritmoMiniMax extends Algoritmo {
      * @return
      */
     public int miniMax(Tablero tablero, int prof, int jugadorActual) {
-        //Si llega a la profundidad máxima:
-        if (prof == 0 || tablero.EsFinalDeJuego()) {
-            return recuentoTotalfichas(tablero, playerColor);
+        //Si llega a la profundidad máxima, aplicamos heurística:
+        if (prof == 0) {
+            return Heuristica.h1(tablero, playerColor);
         }
+        if (tablero.EsFinalDeJuego()) {
+            return Heuristica.h1(tablero, playerColor);
+        }
+        if (this.getProfundidad() == prof && !tablero.PuedeJugar(jugadorActual)) {
+            return Heuristica.h1(tablero, playerColor);
+        }
+
+        // Cuando dado un nodo, el jugador correspondiente no puede realizar movimiento, se cambia turno (pasa turno)
         if (!tablero.PuedeJugar(jugadorActual)) {
-            if (this.getProfundidad() == prof) {
-                return recuentoTotalfichas(tablero, playerColor);
-            }
             jugadorActual = -jugadorActual;
         }
-        Casilla casillaMov = null;
         // Genera una simulación del tablero con posibles movimientos
-        for (int fila = 0; fila < Tablero.CANTIDAD_FILAS_DEFECTO; fila++) {
-            for (int colum = 0; colum < Tablero.CANTIDAD_COLUMNAS_DEFECTO; colum++) {
+        Casilla casillaMov = null;
+        for (int fila = 0; fila < 8; fila++) {
+            for (int colum = 0; colum < 8; colum++) {
                 Casilla cas = new Casilla(fila, colum);
                 if (jugadorActual == Casilla.FICHA_BLANCA) {
                     cas.asignarFichaBlanca();
-                } 
-                if (jugadorActual == Casilla.FICHA_NEGRA){
+                }
+                if (jugadorActual == Casilla.FICHA_NEGRA) {
                     cas.asignarFichaNegra();
                 }
                 if (tablero.movLegal(cas)) {
                     Tablero tableroJugada = tablero.copiarTablero();
                     tableroJugada.ponerFicha(cas);
-                    // Se avanza movimientos intercalando jugadores hasta llegar a la profundidad deseada
-                    int mov = miniMax(tableroJugada, prof-1, -jugadorActual);
-                    // MAX
+
+                    // Se avanza movimientos intercalando jugadores hasta llegar a la profundidad deseada                    
+                    int mov = miniMax(tableroJugada, prof - 1, -jugadorActual);
+
+                    // Jugador Max
                     if (jugadorActual == playerColor) {
                         if (mov >= max) {
-                           casillaMov = cas;
+                            casillaMov = cas;
                             max = mov;
                         }
                         if (mov > min) {
                             min = mov;
                         }
-                    } else { // MIN
+                    // Jugador Min   
+                    } else {
+
                         if (mov <= max) {
-                           casillaMov = cas;
+                            casillaMov = cas;
                             max = mov;
                         }
                         if (mov < min) {
@@ -94,57 +102,15 @@ public class AlgoritmoMiniMax extends Algoritmo {
                 }
             }
 
-            
-
-            
         }
         if (casillaMov != null) {
-                tablero.ponerFicha(casillaMov);
-            }
+            tablero.ponerFicha(casillaMov);
+        }
 
-            if (jugadorActual == this.playerColor) {
-                return min;
-            } else {
-                return max;
-            }
-    }
-
-    /**
-     * Devuelve el numero de fichas de nuestro color que hay en el tablero.
-     *
-     * @param tablero Configuración actual del tablero
-     * @param jugadorActual Nos indica a qué jugador (FICHA_BLANCA ó
-     * FICHA_NEGRA) contaremos sus fichas.
-     * @return contador de fichas del color del jugador
-     */
-    public int recuentoTotalfichas(Tablero tablero, int jugadorActual) {
-
-        Casilla[][] tabla = tablero.getMatrizTablero();
-
-        if (jugadorActual == 1) {
-            int contBlanca = 0;
-
-            for (int i = 0; i < 7; ++i) {
-                for (int j = 0; j < 7; ++j) {
-                    if (tabla[i][j].esBlanca()) {
-                        ++contBlanca;
-                    }
-                }
-            }
-            return contBlanca;
-
+        if (jugadorActual == this.playerColor) {
+            return min;
         } else {
-            int contNegras = 0;
-
-            for (int i = 0; i < 7; ++i) {
-                for (int j = 0; j < 7; ++j) {
-                    if (tabla[i][j].esNegra()) {
-                        ++contNegras;
-                    }
-                }
-            }
-            return contNegras;
+            return max;
         }
     }
-
 }
